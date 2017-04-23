@@ -71,8 +71,16 @@ public:
   ///* the current NIS for radar
   double NIS_radar_;
 
-  ///* the current NIS for laser
-  double NIS_laser_;
+  ///* the current NIS for lidar
+  double NIS_lidar_;
+
+  ///* previous measurement
+  long previous_timestamp_;
+  MeasurementPackage previous_measurement_;
+
+  ///* Number of sigma points (rule of thumb: 2*n_x_ + 1)
+  int n_sigma_;
+
 
   /**
    * Constructor
@@ -108,6 +116,19 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+  void GenerateAugmentedSigmaPoints(const VectorXd &x, const MatrixXd &P, MatrixXd &Xsig_aug);
+  auto InitializeCovariance() -> MatrixXd;
+  auto InitializeStateVector(MeasurementPackage meas_package) -> VectorXd;
+  void SigmaPointPrediction(double delta_t, const MatrixXd &Xsig_aug, MatrixXd &Xsig_pred);
+  void PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x, MatrixXd &P);
+  void PredictLidarMeasurement(const MatrixXd &Xsig_pred, MatrixXd &Ysig, 
+                              VectorXd &y_pred, MatrixXd &S);
+  void PredictRadarMeasurement(const MatrixXd &Xsig_pred, MatrixXd &Zsig, 
+                              VectorXd &z_pred, MatrixXd &S);
+  void UpdateState(const VectorXd &z, const VectorXd &z_pred, const MatrixXd &S,
+                   const MatrixXd &Xsig_pred, const MatrixXd &Zsig, VectorXd &x, MatrixXd &P);
+
 };
 
 #endif /* UKF_H */
